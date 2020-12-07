@@ -3,35 +3,43 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 	"unicode/utf8"
 )
 
+var tree = rune('#')
+
+type slope struct {
+	right int
+	down  int
+}
+
 func main() {
-	bonus := false
-	if len(os.Args) > 1 {
-		bonus = true
+	data := readDataLines("official.data")
+
+	slopes := []slope{
+		slope{right: 1, down: 1},
+		slope{right: 3, down: 1},
+		slope{right: 5, down: 1},
+		slope{right: 7, down: 1},
+		slope{right: 1, down: 2},
 	}
 
-	fmt.Println("Bonus ", bonus)
+	trees := 1
+	for _, s := range slopes {
+		trees *= findTrees(data, s)
+	}
 
-	right := 3
-	down := 1
+	println("Trees:", trees)
+}
 
-	tree := rune('#')
-
-	fmt.Printf("Slope - %v right, %v down\n", right, down)
-
-	data := readDataLines("official.data")
+func findTrees(data []string, slope slope) (trees int) {
 	width := len(data[0])
-
-	trees := 0
 	position := 0
 
 	for _, line := range data[1:] {
 
-		position = (position + right) % width
+		position = (position + slope.right) % width
 		charAtPosition, _ := utf8.DecodeRuneInString(line[position:])
 
 		isTree := charAtPosition == tree
@@ -41,7 +49,9 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Result: %v trees\n", trees)
+	fmt.Printf("Result of run %vx%v: %v trees\n", slope.right, slope.down, trees)
+
+	return trees
 }
 
 func replaceAtIndex(str string, replacement rune, index int) string {
