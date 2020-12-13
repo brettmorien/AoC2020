@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -25,7 +26,6 @@ func main() {
 		seats[i] = parseSeat(code)
 	}
 
-	// Part 1
 	maxSeatID := 0
 	for _, seat := range seats {
 		seatID := seat.seatID()
@@ -33,8 +33,29 @@ func main() {
 			maxSeatID = seatID
 		}
 	}
-
 	fmt.Printf("maximum seat Id: %v\n", maxSeatID)
+
+	// Bonus
+	seatMap := map[int]bool{}
+	for i := 0; i < maxSeatID; i++ {
+		seatMap[i] = false
+	}
+
+	for _, seat := range seats {
+		seatID := seat.seatID()
+		seatMap[seatID] = true
+	}
+
+	var availableSeats []int
+	for seatID, taken := range seatMap {
+		if !taken {
+			availableSeats = append(availableSeats, seatID)
+		}
+	}
+	sort.Ints(availableSeats)
+	for _, seat := range availableSeats {
+		println(seat)
+	}
 }
 
 func parseSeat(code string) Seat {
