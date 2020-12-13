@@ -37,9 +37,11 @@ func findTrees(data []string, slope slope) (trees int) {
 	width := len(data[0])
 	position := 0
 
-	for _, line := range data[1:] {
+	for index, line := range data {
+		if index%slope.down != 0 {
+			continue
+		}
 
-		position = (position + slope.right) % width
 		charAtPosition, _ := utf8.DecodeRuneInString(line[position:])
 
 		isTree := charAtPosition == tree
@@ -47,6 +49,8 @@ func findTrees(data []string, slope slope) (trees int) {
 		if isTree {
 			trees++
 		}
+
+		position = (position + slope.right) % width
 	}
 
 	fmt.Printf("Result of run %vx%v: %v trees\n", slope.right, slope.down, trees)
