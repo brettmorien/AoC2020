@@ -17,12 +17,29 @@ type record struct {
 	cid string // (Country ID)
 }
 
+func (r *record) validate() bool {
+	return len(r.byr) > 0 &&
+		len(r.iyr) > 0 &&
+		len(r.eyr) > 0 &&
+		len(r.hgt) > 0 &&
+		len(r.hcl) > 0 &&
+		len(r.ecl) > 0 &&
+		len(r.pid) > 0
+}
+
 func main() {
-	data := readData("sample.data")
+	data := readData("official.data")
 
 	records := splitRecords(data)
 
-	fmt.Printf("%v\n", records[1])
+	valid := 0
+	for _, record := range records {
+		if record.validate() {
+			valid++
+		}
+	}
+
+	fmt.Printf("Valid passports: %v\n", valid)
 }
 
 func splitRecords(data []string) []record {
