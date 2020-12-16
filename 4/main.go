@@ -91,8 +91,8 @@ func validateYear(yearString string, min int, max int) bool {
 }
 
 func main() {
-	// data := readData("sample2.data")
-	data := readData("official.data")
+	// data := readRecords("sample2.data")
+	data := readRecords("official.data")
 
 	records := splitRecords(data)
 
@@ -143,7 +143,7 @@ func check(err error) {
 	}
 }
 
-func readData(filename string) []string {
+func readRecords(filename string) []string {
 	fileBytes, error := ioutil.ReadFile(filename)
 	check(error)
 	records := strings.Split(string(fileBytes), "\n\n")
