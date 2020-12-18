@@ -18,7 +18,7 @@ type Constraint struct {
 }
 
 func main() {
-	data := readDataLines("sample.data")
+	data := readDataLines("official.data")
 
 	rules := make([]Rule, len(data))
 
@@ -26,17 +26,56 @@ func main() {
 		rules[i] = parseRule(line)
 	}
 
+	ruleMap := map[string]Rule{}
+
 	for _, rule := range rules {
 		fmt.Printf("%v\n", rule)
 
-		// for _, c := range rule.constraints {
-		// 	println("shiny gold ?", c.color)
-		// 	if c.color == "shiny gold" {
-		// 		total++
-		// 	}
-		// }
+		ruleMap[rule.bagColor] = rule
 	}
 
+	desiredColor := "shiny gold"
+	colorMap := map[string]bool{}
+	colorMap[desiredColor] = true
+	count := len(colorMap)
+	for {
+		for color := range colorMap {
+			containingColors := findBagsContainingColor(color, rules)
+			for _, c := range containingColors {
+				colorMap[c] = true
+			}
+		}
+
+		// harmlessly remove initial color from collection
+		delete(colorMap, desiredColor)
+
+		// leave if the list hasn't grown
+		if len(colorMap) == count {
+			break
+		}
+		count = len(colorMap)
+	}
+
+	colors := make([]string, 0, len(colorMap))
+	for c := range colorMap {
+		colors = append(colors, c)
+	}
+
+	fmt.Println("------------")
+	fmt.Printf("%v colors: %#v\n", len(colors), colors)
+}
+
+func findBagsContainingColor(color string, rules []Rule) []string {
+	var results []string
+	for _, rule := range rules {
+		for _, c := range rule.constraints {
+			if c.color == color {
+				results = append(results, rule.bagColor)
+			}
+		}
+	}
+
+	return results
 }
 
 func parseRule(ruleString string) Rule {
