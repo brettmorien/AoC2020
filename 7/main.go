@@ -26,17 +26,51 @@ func main() {
 		rules[i] = parseRule(line)
 	}
 
+	findAllColorsContainingBag("shiny gold", rules)
+
+	ruleMap := makeRuleMap(rules)
+	bagsWithin := findBagsContainedInBag("shiny gold", 1, ruleMap)
+
+	println(len(bagsWithin))
+
+	total := -1
+	for bag, count := range bagsWithin {
+		fmt.Printf("Bag %s: %v\n", bag, count)
+		total += count
+	}
+
+	fmt.Printf("total bags: %v\n", total)
+}
+
+func findBagsContainedInBag(color string, count int, rules map[string]Rule) map[string]int {
+	rule := rules[color]
+	results := map[string]int{}
+	results[color] = count
+
+	for _, con := range rule.constraints {
+		innerBags := findBagsContainedInBag(con.color, con.count*count, rules)
+		for col, c := range innerBags {
+			results[col] += c
+		}
+	}
+
+	return results
+}
+
+func makeRuleMap(rules []Rule) map[string]Rule {
 	ruleMap := map[string]Rule{}
 
 	for _, rule := range rules {
 		fmt.Printf("%v\n", rule)
-
 		ruleMap[rule.bagColor] = rule
 	}
 
-	desiredColor := "shiny gold"
+	return ruleMap
+}
+
+func findAllColorsContainingBag(color string, rules []Rule) {
 	colorMap := map[string]bool{}
-	colorMap[desiredColor] = true
+	colorMap[color] = true
 	count := len(colorMap)
 	for {
 		for color := range colorMap {
@@ -47,7 +81,7 @@ func main() {
 		}
 
 		// harmlessly remove initial color from collection
-		delete(colorMap, desiredColor)
+		delete(colorMap, color)
 
 		// leave if the list hasn't grown
 		if len(colorMap) == count {
