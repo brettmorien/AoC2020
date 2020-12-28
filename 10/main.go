@@ -13,8 +13,14 @@ const debug = false
 func main() {
 	data := readData("official.data")
 
-	fmt.Printf("%v\n", data)
+	if debug {
+		fmt.Printf("%v\n", data)
+	}
 
+	findGaps(data)
+}
+
+func findGaps(data []int) {
 	gaps := map[int]int{}
 	gaps[3] = 1
 	gaps[data[0]]++
@@ -24,7 +30,7 @@ func main() {
 	}
 
 	fmt.Printf("Gaps: %v\n", gaps)
-	fmt.Printf("Anser: %v\n", gaps[1]*gaps[3])
+	fmt.Printf("Answer: %v\n", gaps[1]*gaps[3])
 }
 
 func readData(filename string) []int {
