@@ -15,6 +15,8 @@ const (
 	jmp Op = "jmp"
 )
 
+const debug = false
+
 type Program struct {
 	instructions []Instruction
 }
@@ -26,18 +28,34 @@ type Instruction struct {
 
 func main() {
 	program := readProgram("official.data")
-	execute(program)
+	printProgram(program, -1)
+	fmt.Println("-------------")
+	change := 0
+	for _, inst := range program.instructions {
+		if inst.op == nop {
+			change++
+		}
+	}
+
+	terminated := false
+	for i, inst := range program.instructions {
+		if inst.op != acc {
+			terminated = execute(modifyProgram(program, i))
+			if terminated {
+				break
+			}
+		}
+	}
 }
 
-func execute(program Program) {
+func execute(program Program) bool {
 	executed := map[int]bool{}
-
+	termination := len(program.instructions)
 	a := 0
 	pc := 0
-	for !executed[pc] {
+	for !executed[pc] && pc < termination {
 		inst := program.instructions[pc]
 		executed[pc] = true
-		fmt.Printf("%v\n", inst)
 		if inst.op == jmp {
 			pc += inst.arg
 		} else if inst.op == acc {
@@ -48,7 +66,45 @@ func execute(program Program) {
 		}
 	}
 
-	fmt.Printf("Acc before loop: %v\n", a)
+	if pc >= termination {
+		fmt.Printf("PC: %v, acc: %v\n", pc, a)
+		fmt.Println("Terminated")
+		return true
+	} else {
+		return false
+	}
+}
+
+func modifyProgram(program Program, changeOp int) Program {
+	newProgram := Program{
+		instructions: make([]Instruction, len(program.instructions)),
+	}
+
+	for i, inst := range program.instructions {
+		if i == changeOp {
+			newOp := nop
+			if inst.op == nop {
+				newOp = jmp
+			}
+			newProgram.instructions[i] = Instruction{op: newOp, arg: inst.arg}
+		} else {
+			newProgram.instructions[i] = Instruction{op: inst.op, arg: inst.arg}
+		}
+	}
+
+	printProgram(newProgram, changeOp)
+	return newProgram
+}
+
+func printProgram(program Program, changeOp int) {
+	if debug {
+		for i, inst := range program.instructions {
+			if i == changeOp {
+				fmt.Print("-> ")
+			}
+			fmt.Printf("%v: %v\n", i, inst)
+		}
+	}
 }
 
 func readProgram(file string) Program {
