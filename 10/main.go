@@ -8,16 +8,46 @@ import (
 	"strings"
 )
 
-const debug = false
+const debug = true
+
+type TreeNode struct {
+	value    int
+	children []*TreeNode
+}
 
 func main() {
-	data := readData("official.data")
+	data := readData("sample.data")
 
 	if debug {
 		fmt.Printf("%v\n", data)
 	}
 
 	findGaps(data)
+
+	count := 0
+	buildTree(0, data, &count)
+
+	fmt.Printf("Count: %v", count)
+}
+
+func buildTree(value int, data []int, count *int) *TreeNode {
+	node := TreeNode{
+		value: value,
+	}
+	for _, val := range data {
+		if val <= value {
+			continue
+		} else if val > value+3 {
+			break
+		}
+
+		node.children = append(node.children, buildTree(val, data, count))
+	}
+
+	if len(node.children) == 0 {
+		*count = *count + 1
+	}
+	return &node
 }
 
 func findGaps(data []int) {
