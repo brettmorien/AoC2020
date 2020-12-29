@@ -11,35 +11,40 @@ import (
 const debug = true
 
 func main() {
-	data := readData("official.data")
+	data := readData("sample.data")
 
 	if debug {
-		fmt.Printf("%v\n", data)
+		fmt.Printf("%v items: %v\n", len(data), data)
 	}
 
 	findGaps(data)
 
 	count := 0
-	traverseTree(0, data, &count)
+	traverseTree(0, makeMap(data), &count)
 
 	fmt.Printf("Count: %v\n", count)
 }
 
-func traverseTree(value int, data []int, count *int) {
+func traverseTree(value int, data map[int]bool, count *int) {
 	childCount := 0
-	for _, val := range data {
-		if val <= value {
-			continue
-		} else if val > value+3 {
-			break
+	for i := 1; i <= 3; i++ {
+		if data[value+i] {
+			childCount++
+			traverseTree(value+i, data, count)
 		}
-		childCount++
-		traverseTree(val, data, count)
 	}
 
 	if childCount == 0 {
 		*count = *count + 1
 	}
+}
+
+func makeMap(data []int) map[int]bool {
+	valueMap := map[int]bool{}
+	for _, i := range data {
+		valueMap[i] = true
+	}
+	return valueMap
 }
 
 func findGaps(data []int) {
