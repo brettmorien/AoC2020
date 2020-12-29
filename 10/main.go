@@ -11,7 +11,7 @@ import (
 const debug = true
 
 func main() {
-	data := readData("sample.data")
+	data := readData("official.data")
 
 	if debug {
 		fmt.Printf("%v items: %v\n", len(data), data)
@@ -19,24 +19,29 @@ func main() {
 
 	findGaps(data)
 
-	count := 0
-	traverseTree(0, makeMap(data), &count)
+	found := map[int]int{}
+	count := traverseTree(0, max(data), makeMap(data), found)
 
 	fmt.Printf("Count: %v\n", count)
 }
 
-func traverseTree(value int, data map[int]bool, count *int) {
+func traverseTree(value int, last int, data map[int]bool, found map[int]int) int {
+	if found[value] > 0 {
+		return found[value]
+	}
+
+	if value == last {
+		return 1
+	}
+
 	childCount := 0
 	for i := 1; i <= 3; i++ {
 		if data[value+i] {
-			childCount++
-			traverseTree(value+i, data, count)
+			childCount += traverseTree(value+i, last, data, found)
 		}
 	}
-
-	if childCount == 0 {
-		*count = *count + 1
-	}
+	found[value] = childCount
+	return childCount
 }
 
 func makeMap(data []int) map[int]bool {
