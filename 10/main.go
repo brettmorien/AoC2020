@@ -10,13 +10,8 @@ import (
 
 const debug = true
 
-type TreeNode struct {
-	value    int
-	children []*TreeNode
-}
-
 func main() {
-	data := readData("sample.data")
+	data := readData("official.data")
 
 	if debug {
 		fmt.Printf("%v\n", data)
@@ -25,29 +20,26 @@ func main() {
 	findGaps(data)
 
 	count := 0
-	buildTree(0, data, &count)
+	traverseTree(0, data, &count)
 
-	fmt.Printf("Count: %v", count)
+	fmt.Printf("Count: %v\n", count)
 }
 
-func buildTree(value int, data []int, count *int) *TreeNode {
-	node := TreeNode{
-		value: value,
-	}
+func traverseTree(value int, data []int, count *int) {
+	childCount := 0
 	for _, val := range data {
 		if val <= value {
 			continue
 		} else if val > value+3 {
 			break
 		}
-
-		node.children = append(node.children, buildTree(val, data, count))
+		childCount++
+		traverseTree(val, data, count)
 	}
 
-	if len(node.children) == 0 {
+	if childCount == 0 {
 		*count = *count + 1
 	}
-	return &node
 }
 
 func findGaps(data []int) {
