@@ -7,12 +7,16 @@ import (
 	"strings"
 )
 
-const debug = true
+const debug = false
+
+type Point struct {
+	x int
+	y int
+}
 
 type Ship struct {
-	heading int
-	x       int
-	y       int
+	position Point
+	waypoint Point
 }
 
 type Instruction struct {
@@ -24,17 +28,15 @@ func main() {
 	instructions := readData("official.data")
 
 	ship := Ship{
-		heading: 0,
-		x:       0,
-		y:       0,
+		position: Point{},
+		waypoint: Point{x: 10, y: 1},
 	}
 
 	for _, instruction := range instructions {
 		ship.move(instruction)
 	}
 
-	fmt.Printf("Manhattan Distance: %v\n", abs(ship.x)+abs(ship.y))
-
+	fmt.Printf("Manhattan Distance: %v\n", abs(ship.position.x)+abs(ship.position.y))
 }
 
 func toXY(degrees int) (x int, y int) {
@@ -53,30 +55,40 @@ func toXY(degrees int) (x int, y int) {
 
 func (ship *Ship) move(instruction Instruction) {
 	if instruction.op == "N" {
-		ship.y += instruction.arg
+		ship.waypoint.y += instruction.arg
 	} else if instruction.op == "E" {
-		ship.x += instruction.arg
+		ship.waypoint.x += instruction.arg
 	} else if instruction.op == "S" {
-		ship.y -= instruction.arg
+		ship.waypoint.y -= instruction.arg
 	} else if instruction.op == "W" {
-		ship.x -= instruction.arg
+		ship.waypoint.x -= instruction.arg
 	} else if instruction.op == "R" {
-		ship.heading = (ship.heading - instruction.arg) % 360
+		ship.rotateWaypoint(-instruction.arg)
 	} else if instruction.op == "L" {
-		ship.heading = (ship.heading + instruction.arg) % 360
+		ship.rotateWaypoint(instruction.arg)
 	} else if instruction.op == "F" {
-		x, y := toXY(ship.heading)
-		ship.x += x * instruction.arg
-		ship.y += y * instruction.arg
-	}
-
-	if ship.heading < 0 {
-		ship.heading += 360
+		ship.position.x += ship.waypoint.x * instruction.arg
+		ship.position.y += ship.waypoint.y * instruction.arg
 	}
 
 	if debug {
 		fmt.Printf("%v\n", instruction)
 		fmt.Printf("%v\n", *ship)
+	}
+}
+
+func (ship *Ship) rotateWaypoint(degrees int) {
+	if degrees < 0 {
+		degrees += 360
+	}
+	if degrees == 90 {
+		ship.waypoint = Point{-ship.waypoint.y, ship.waypoint.x}
+	}
+	if degrees == 180 {
+		ship.waypoint = Point{-ship.waypoint.x, -ship.waypoint.y}
+	}
+	if degrees == 270 {
+		ship.waypoint = Point{ship.waypoint.y, -ship.waypoint.x}
 	}
 }
 
