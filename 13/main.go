@@ -11,9 +11,24 @@ import (
 const debug = false
 
 func main() {
-	timestamp, lines := readData("sample.data")
+	timestamp, lines := readData("official.data")
+
+	waits := map[int]int{}
+	for _, line := range lines {
+		waits[line] = line - timestamp%line
+	}
+
+	minWait, line := 100000000000, 0
+	for l, wait := range waits {
+		if wait < minWait {
+			minWait = wait
+			line = l
+		}
+	}
 
 	fmt.Printf("time: %v, lines: %v\n", timestamp, lines)
+	fmt.Printf("Wait: %v, line: %v\n", minWait, line)
+	fmt.Printf("Answer: %v\n", minWait*line)
 }
 
 func readData(filename string) (int, []int) {
@@ -39,14 +54,6 @@ func readDataLines(filename string) []string {
 	return strings.Split(string(fileBytes), "\n")
 }
 
-func makeSet(data []int) map[int]bool {
-	valueMap := map[int]bool{}
-	for _, i := range data {
-		valueMap[i] = true
-	}
-	return valueMap
-}
-
 func max(items []int) int {
 	if len(items) == 0 {
 		return 0
@@ -61,11 +68,18 @@ func max(items []int) int {
 	return max
 }
 
-func abs(i int) int {
-	if i < 0 {
-		return 0 - i
+func min(items []int) int {
+	if len(items) == 0 {
+		return 0
 	}
-	return i
+	min := items[0]
+
+	for _, i := range items {
+		if i < min {
+			min = i
+		}
+	}
+	return min
 }
 
 func check(err error) {
