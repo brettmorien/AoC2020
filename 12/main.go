@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-const debug = false
+const debug = true
 
-type ShipPosition struct {
+type Ship struct {
 	heading int
 	x       int
 	y       int
@@ -21,10 +21,62 @@ type Instruction struct {
 }
 
 func main() {
-	data := readData("sample.data")
+	instructions := readData("official.data")
 
-	for _, line := range data {
-		fmt.Printf("%v\n", line)
+	ship := Ship{
+		heading: 0,
+		x:       0,
+		y:       0,
+	}
+
+	for _, instruction := range instructions {
+		ship.move(instruction)
+	}
+
+	fmt.Printf("Manhattan Distance: %v\n", abs(ship.x)+abs(ship.y))
+
+}
+
+func toXY(degrees int) (x int, y int) {
+	if degrees == 0 {
+		return 1, 0
+	} else if degrees == 90 {
+		return 0, 1
+	} else if degrees == 180 {
+		return -1, 0
+	} else if degrees == 270 {
+		return 0, -1
+	} else {
+		panic(fmt.Sprintf("Unknown direction: %v", degrees))
+	}
+}
+
+func (ship *Ship) move(instruction Instruction) {
+	if instruction.op == "N" {
+		ship.y += instruction.arg
+	} else if instruction.op == "E" {
+		ship.x += instruction.arg
+	} else if instruction.op == "S" {
+		ship.y -= instruction.arg
+	} else if instruction.op == "W" {
+		ship.x -= instruction.arg
+	} else if instruction.op == "R" {
+		ship.heading = (ship.heading - instruction.arg) % 360
+	} else if instruction.op == "L" {
+		ship.heading = (ship.heading + instruction.arg) % 360
+	} else if instruction.op == "F" {
+		x, y := toXY(ship.heading)
+		ship.x += x * instruction.arg
+		ship.y += y * instruction.arg
+	}
+
+	if ship.heading < 0 {
+		ship.heading += 360
+	}
+
+	if debug {
+		fmt.Printf("%v\n", instruction)
+		fmt.Printf("%v\n", *ship)
 	}
 }
 
@@ -72,6 +124,13 @@ func max(items []int) int {
 		}
 	}
 	return max
+}
+
+func abs(i int) int {
+	if i < 0 {
+		return 0 - i
+	}
+	return i
 }
 
 func check(err error) {
