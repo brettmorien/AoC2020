@@ -49,9 +49,9 @@ func (area WaitingArea) takeTurn() WaitingArea {
 				continue
 			}
 
-			adjacent := area.countAdjacent(i, j)
+			adjacent := area.countOccupied(i, j)
 			if area.occupied[i][j] {
-				newWaitingArea.occupied[i][j] = adjacent < 4
+				newWaitingArea.occupied[i][j] = adjacent < 5
 			} else {
 				newWaitingArea.occupied[i][j] = adjacent == 0
 			}
@@ -62,6 +62,62 @@ func (area WaitingArea) takeTurn() WaitingArea {
 		newWaitingArea.draw()
 	}
 	return newWaitingArea
+}
+
+func (area WaitingArea) castRay(row int, seat int, dirRow int, dirSeat int) bool {
+	distance := 1
+	checkRow, checkSeat := row+dirRow, seat+dirSeat
+	for checkRow >= 0 && checkRow < area.rowCount && checkSeat >= 0 && checkSeat < area.seatCount {
+		if area.occupied[checkRow][checkSeat] {
+			return true
+		}
+		if area.seats[checkRow][checkSeat] {
+			return false
+		}
+		distance++
+		checkRow, checkSeat = row+(distance*dirRow), seat+(distance*dirSeat)
+	}
+
+	return false
+}
+
+const (
+	up    = -1
+	down  = 1
+	left  = -1
+	right = 1
+	same  = 0
+)
+
+func (area WaitingArea) countOccupied(row int, seat int) int {
+	occupied := 0
+
+	if area.castRay(row, seat, up, left) {
+		occupied++
+	}
+	if area.castRay(row, seat, up, same) {
+		occupied++
+	}
+	if area.castRay(row, seat, up, right) {
+		occupied++
+	}
+	if area.castRay(row, seat, same, left) {
+		occupied++
+	}
+	if area.castRay(row, seat, same, right) {
+		occupied++
+	}
+	if area.castRay(row, seat, down, left) {
+		occupied++
+	}
+	if area.castRay(row, seat, down, same) {
+		occupied++
+	}
+	if area.castRay(row, seat, down, right) {
+		occupied++
+	}
+
+	return occupied
 }
 
 func (area WaitingArea) countAdjacent(row int, seat int) int {
