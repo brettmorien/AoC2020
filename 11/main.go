@@ -6,15 +6,18 @@ import (
 	"strings"
 )
 
-const debug = true
+const debug = false
 
+// [][]bool -> row, seat
 type WaitingArea struct {
-	seats    [][]bool
-	occupied [][]bool
+	rowCount  int
+	seatCount int
+	seats     [][]bool
+	occupied  [][]bool
 }
 
 func main() {
-	data := readData("sample.data")
+	data := readData("official.data")
 
 	waitingArea := fill(data)
 
@@ -22,9 +25,94 @@ func main() {
 		waitingArea.draw()
 	}
 
-	count := 0
+	iterations := 0
+	for {
+		newWaitingArea := waitingArea.takeTurn()
+		differences := waitingArea.diffOccupied(newWaitingArea)
+		if differences == 0 {
+			break
+		}
+		waitingArea = newWaitingArea
+		iterations++
+	}
 
-	fmt.Printf("Count: %v\n", count)
+	fmt.Printf("Iterations: %v\n", iterations)
+	fmt.Printf("Occupied: %v\n", waitingArea.occupiedCount())
+}
+
+func (area WaitingArea) takeTurn() WaitingArea {
+	newWaitingArea := fill(area.seats)
+
+	for i, row := range area.seats {
+		for j, seat := range row {
+			if !seat {
+				continue
+			}
+
+			adjacent := area.countAdjacent(i, j)
+			if area.occupied[i][j] {
+				newWaitingArea.occupied[i][j] = adjacent < 4
+			} else {
+				newWaitingArea.occupied[i][j] = adjacent == 0
+			}
+		}
+	}
+
+	if debug {
+		newWaitingArea.draw()
+	}
+	return newWaitingArea
+}
+
+func (area WaitingArea) countAdjacent(row int, seat int) int {
+	adjacent := 0
+
+	if row > 0 {
+		row := area.occupied[row-1]
+		if seat > 0 && row[seat-1] {
+			adjacent++
+		}
+		if row[seat] {
+			adjacent++
+		}
+		if seat < area.seatCount-1 && row[seat+1] {
+			adjacent++
+		}
+	}
+
+	if seat > 0 && area.occupied[row][seat-1] {
+		adjacent++
+	}
+	if seat < area.seatCount-1 && area.occupied[row][seat+1] {
+		adjacent++
+	}
+
+	if row < area.rowCount-1 {
+		row := area.occupied[row+1]
+		if seat > 0 && row[seat-1] {
+			adjacent++
+		}
+		if row[seat] {
+			adjacent++
+		}
+		if seat < area.seatCount-1 && row[seat+1] {
+			adjacent++
+		}
+	}
+
+	return adjacent
+}
+
+func (area WaitingArea) occupiedCount() int {
+	occupied := 0
+	for _, row := range area.occupied {
+		for _, seat := range row {
+			if seat {
+				occupied++
+			}
+		}
+	}
+	return occupied
 }
 
 func (area WaitingArea) draw() {
@@ -42,16 +130,30 @@ func (area WaitingArea) draw() {
 		}
 		fmt.Println()
 	}
+	fmt.Println("------------")
+}
+
+func (area WaitingArea) diffOccupied(area2 WaitingArea) int {
+	differences := 0
+	for i, row := range area.occupied {
+		for j, seat := range row {
+			if area2.occupied[i][j] != seat {
+				differences++
+			}
+		}
+	}
+	return differences
 }
 
 func fill(seats [][]bool) WaitingArea {
 	area := WaitingArea{
 		seats:    seats,
 		occupied: make([][]bool, len(seats)),
+		rowCount: len(seats),
 	}
-	width := len(seats[0])
+	area.seatCount = len(seats[0])
 	for i := range area.seats {
-		area.occupied[i] = make([]bool, width)
+		area.occupied[i] = make([]bool, area.seatCount)
 	}
 
 	return area
